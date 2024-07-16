@@ -1,14 +1,17 @@
 import mongoose, { Document } from "mongoose";
+import { IRoute, Route } from "../models/routeModel";
+import { getSections } from "../utils/getSections";
+import { findBestSeat } from "../utils/findBestSeat";
+
+export type Seat = {
+  seatNumber: string;
+  sectionsStatus: ("Available" | "Unavailable")[];
+};
 
 // Define the IRide interface
-interface IRide extends Document {
+export interface IRide extends Document {
   route: string;
-  seats: {
-    seatNumber: string;
-    status: "Available" | "Unavailable";
-  }[];
-  fromStation: string;
-  toStation: string;
+  seats: Seat[];
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -27,25 +30,47 @@ const rideSchema = new mongoose.Schema(
           type: String,
           required: true,
         },
-        status: {
-          type: String,
+        sectionsStatus: {
+          type: [String],
           enum: ["Available", "Unavailable"],
           required: true,
         },
       },
     ],
-    fromStation: {
-      type: String,
-      ref: "Station",
-      required: true,
-    },
-    toStation: {
-      type: String,
-      ref: "Station",
-      required: true,
-    },
   },
   { timestamps: true }
 );
 
 export const Ride = mongoose.model<IRide>("Ride", rideSchema);
+
+const routesCache: { [key: string]: IRoute } = {};
+
+export async function findFreeSeat(
+  rideId: string,
+  originStation: string,
+  destinationStation: string
+): Promise<string> {
+  // Find the ride
+  const ride: IRide | null = await Ride.findById(rideId).exec();
+  if (!ride) {
+    throw new Error("Ride not found");
+  }
+  // Find the route
+  let route: IRoute | null = routesCache[ride.route];
+  if (!route) {
+    route = await Route.findOne({
+      route: ride.route,
+    }).exec();
+    if (!route) {
+      throw new Error("Route not found");
+    }
+    routesCache[route._id!.toString()] = route;
+  }
+  const sections: number[] = await getSections(
+    route.stations,
+    originStation,
+    destinationStation
+  );
+  const freeSeat: string = findBestSeat(ride.seats, sections);
+  return freeSeat;
+}

@@ -1,11 +1,10 @@
 import mongoose, { Document } from "mongoose";
 
 // Define the IRoute interface
-interface IRoute extends Document {
+export interface IRoute extends Document {
+  _id?: string;
   train: string;
-  stations: {
-    station: string;
-  }[];
+  stations: string[];
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -13,23 +12,21 @@ interface IRoute extends Document {
 // Route Schema
 const routeSchema = new mongoose.Schema(
   {
+    _id: {
+      type: String,
+      required: true,
+    },
     train: {
       type: String,
       ref: "Train",
       required: true,
     },
-    stations: [
-      {
-        station: {
-          type: String,
-          ref: "Station",
-          required: true,
-        },
-      },
-    ],
+    stations: {
+      type: [String],
+      required: true,
+    },
   },
   { timestamps: true }
 );
 
-const Route = mongoose.model<IRoute>("Route", routeSchema);
-export default Route;
+export const Route = mongoose.model<IRoute>("Route", routeSchema);
