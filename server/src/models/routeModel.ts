@@ -3,7 +3,7 @@ import mongoose, { Document } from "mongoose";
 // Define the IRoute interface
 export interface IRoute extends Document {
   _id?: string;
-  train: string;
+  name: string;
   stations: string[];
   createdAt?: Date;
   updatedAt?: Date;
@@ -16,9 +16,8 @@ const routeSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    train: {
+    name: {
       type: String,
-      ref: "Train",
       required: true,
     },
     stations: {

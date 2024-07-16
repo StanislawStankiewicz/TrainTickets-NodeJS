@@ -1,5 +1,6 @@
 import mongoose, { Document } from "mongoose";
-import { findFreeSeat } from "./rideModel";
+import { claimFreeSeat } from "./rideModel";
+import { IRide, Ride } from "./rideModel";
 
 // Define the ITicket interface
 export interface ITicket extends Document {
@@ -30,7 +31,7 @@ const ticketSchema = new mongoose.Schema(
     },
     price: {
       type: Number,
-      required: true,
+      required: false,
     },
   },
   { timestamps: true }
@@ -38,15 +39,22 @@ const ticketSchema = new mongoose.Schema(
 
 export const Ticket = mongoose.model<ITicket>("Ticket", ticketSchema);
 
-// Update the createTicket function to use the ITicket interface
 export async function createTicket(
-  ticket: ITicket,
+  rideId: string,
   originStation: string,
   destinationStation: string
-) {
-  const seat = await findFreeSeat(
-    ticket.ride,
-    originStation,
-    destinationStation
-  );
+): Promise<ITicket> {
+  const ride: IRide | null = await Ride.findById(rideId).exec();
+  if (!ride) {
+    throw new Error("Ride not found");
+  }
+  const seat = await claimFreeSeat(ride, originStation, destinationStation);
+
+  const ticket: ITicket = new Ticket({
+    train: ride.train,
+    ride: rideId,
+    seat,
+  });
+
+  return ticket.save();
 }

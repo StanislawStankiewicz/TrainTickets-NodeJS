@@ -30,3 +30,10 @@ const userSchema = new mongoose.Schema(
 );
 
 export const User = mongoose.model<IUser>("User", userSchema);
+
+// export async function registerUser(
+//   user: IUser,
+//   hashedPassword: string
+// ): Promise<IUser> {
+//   return user.save();
+// }

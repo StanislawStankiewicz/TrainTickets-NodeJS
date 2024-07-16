@@ -10,7 +10,9 @@ export type Seat = {
 
 // Define the IRide interface
 export interface IRide extends Document {
+  _id?: string;
   route: string;
+  train: string;
   seats: Seat[];
   createdAt?: Date;
   updatedAt?: Date;
@@ -22,6 +24,11 @@ const rideSchema = new mongoose.Schema(
     route: {
       type: String,
       ref: "Route",
+      required: true,
+    },
+    train: {
+      type: String,
+      ref: "Train",
       required: true,
     },
     seats: [
@@ -45,32 +52,39 @@ export const Ride = mongoose.model<IRide>("Ride", rideSchema);
 
 const routesCache: { [key: string]: IRoute } = {};
 
-export async function findFreeSeat(
-  rideId: string,
+export async function claimFreeSeat(
+  ride: IRide,
   originStation: string,
   destinationStation: string
 ): Promise<string> {
-  // Find the ride
-  const ride: IRide | null = await Ride.findById(rideId).exec();
-  if (!ride) {
-    throw new Error("Ride not found");
-  }
   // Find the route
   let route: IRoute | null = routesCache[ride.route];
   if (!route) {
     route = await Route.findOne({
-      route: ride.route,
+      name: ride.route,
     }).exec();
     if (!route) {
       throw new Error("Route not found");
     }
     routesCache[route._id!.toString()] = route;
   }
-  const sections: number[] = await getSections(
+  const sections: number[] = getSections(
     route.stations,
     originStation,
     destinationStation
   );
   const freeSeat: string = findBestSeat(ride.seats, sections);
+
+  // Update the ride
+  ride.seats = ride.seats.map((seat) => {
+    if (seat.seatNumber === freeSeat) {
+      sections.forEach((section) => {
+        seat.sectionsStatus[section - 1] = "Unavailable";
+      });
+    }
+    return seat;
+  });
+  await ride.save();
+
   return freeSeat;
 }
