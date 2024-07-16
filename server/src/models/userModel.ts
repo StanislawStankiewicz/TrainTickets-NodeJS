@@ -1,10 +1,11 @@
-import mongoose, { Document } from "mongoose";
+import mongoose, { Document, ObjectId } from "mongoose";
 
 // Define the IUser interface
-interface IUser extends Document {
+export interface IUser extends Document {
   name: string;
   email: string;
   phone?: string;
+  tickets?: ObjectId[];
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -23,6 +24,11 @@ const userSchema = new mongoose.Schema(
     },
     phone: {
       type: String,
+      required: false,
+    },
+    tickets: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: "Ticket",
       required: false,
     },
   },

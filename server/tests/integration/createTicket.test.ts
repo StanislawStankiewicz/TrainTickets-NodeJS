@@ -1,10 +1,12 @@
-import mongoose from "mongoose";
+import mongoose, { ObjectId } from "mongoose";
 import { Ticket, createTicket } from "../../src/models/ticketModel";
 import { Ride } from "../../src/models/rideModel";
 import { Route } from "../../src/models/routeModel";
+import { User } from "../../src/models/userModel";
 
 beforeAll(async () => {
   await mongoose.connect("mongodb://localhost:27017/TrainTicketsTests");
+  await mongoose.connection.dropDatabase();
 });
 
 beforeEach(async () => {
@@ -22,16 +24,19 @@ beforeEach(async () => {
   await ride.save();
 
   const route = new Route({
-    _id: "route1",
     name: "route1",
     stations: ["station1", "station2", "station3", "station4"],
   });
   await route.save();
+
+  const user = new User({
+    name: "user1",
+    email: "user1@user.us",
+  });
+  await user.save();
 });
 
-afterEach(async () => {
-  await mongoose.connection.dropDatabase();
-});
+afterEach(async () => {});
 
 afterAll(async () => {
   await mongoose.disconnect();
@@ -44,7 +49,13 @@ describe("createTicket", () => {
       fail("Ride not found");
     }
 
-    const ticket = await createTicket(ride._id, "station1", "station2");
+    const userDoc = await User.findOne({ name: "user1" }).select("_id").exec();
+    if (!userDoc) {
+      fail("User not found");
+    }
+    const userId: ObjectId = userDoc._id as ObjectId;
+
+    const ticket = await createTicket(userId, ride._id, "station1", "station2");
     expect(ticket).toBeDefined();
     expect(ticket.train).toBe(ride.train);
     expect(ticket.ride).toBe(ride.id);

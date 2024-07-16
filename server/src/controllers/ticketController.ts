@@ -5,6 +5,7 @@ import * as ticketModel from "../models/ticketModel";
 export async function createTicket(req: Request, res: Response) {
   try {
     const ticket: ITicket = await ticketModel.createTicket(
+      req.body.userId,
       req.body.rideId,
       req.body.originStation,
       req.body.destinationStation

@@ -1,7 +1,7 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema, Document, ObjectId } from "mongoose";
 
 interface IPassword extends Document {
-  userId: string;
+  userId: ObjectId;
   password: string;
 }
 

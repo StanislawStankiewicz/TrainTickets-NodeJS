@@ -1,4 +1,4 @@
-import mongoose, { Document } from "mongoose";
+import mongoose, { Document, ObjectId } from "mongoose";
 import { IRoute, Route } from "../models/routeModel";
 import { getSections } from "../utils/getSections";
 import { findBestSeat } from "../utils/findBestSeat";
@@ -10,7 +10,7 @@ export type Seat = {
 
 // Define the IRide interface
 export interface IRide extends Document {
-  _id?: string;
+  _id?: ObjectId;
   route: string;
   train: string;
   seats: Seat[];
@@ -84,7 +84,7 @@ export async function claimFreeSeat(
     }
     return seat;
   });
-  await ride.save();
+  ride.save();
 
   return freeSeat;
 }

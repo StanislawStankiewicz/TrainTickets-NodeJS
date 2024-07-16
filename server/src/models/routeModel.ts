@@ -1,8 +1,8 @@
-import mongoose, { Document } from "mongoose";
+import mongoose, { Document, ObjectId } from "mongoose";
 
 // Define the IRoute interface
 export interface IRoute extends Document {
-  _id?: string;
+  _id?: ObjectId;
   name: string;
   stations: string[];
   createdAt?: Date;
@@ -12,10 +12,6 @@ export interface IRoute extends Document {
 // Route Schema
 const routeSchema = new mongoose.Schema(
   {
-    _id: {
-      type: String,
-      required: true,
-    },
     name: {
       type: String,
       required: true,

@@ -1,9 +1,11 @@
-import mongoose, { Document } from "mongoose";
+import mongoose, { Document, ObjectId } from "mongoose";
 import { claimFreeSeat } from "./rideModel";
 import { IRide, Ride } from "./rideModel";
+import { User } from "./userModel";
 
 // Define the ITicket interface
 export interface ITicket extends Document {
+  userId: ObjectId;
   train: string;
   ride: string;
   seat: string;
@@ -15,6 +17,11 @@ export interface ITicket extends Document {
 // Ticket Schema
 const ticketSchema = new mongoose.Schema(
   {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
     train: {
       type: String,
       ref: "Train",
@@ -40,7 +47,8 @@ const ticketSchema = new mongoose.Schema(
 export const Ticket = mongoose.model<ITicket>("Ticket", ticketSchema);
 
 export async function createTicket(
-  rideId: string,
+  userId: ObjectId,
+  rideId: ObjectId,
   originStation: string,
   destinationStation: string
 ): Promise<ITicket> {
@@ -51,10 +59,18 @@ export async function createTicket(
   const seat = await claimFreeSeat(ride, originStation, destinationStation);
 
   const ticket: ITicket = new Ticket({
+    userId: userId,
     train: ride.train,
     ride: rideId,
     seat,
   });
 
-  return ticket.save();
+  const savedTicket = await ticket.save();
+
+  User.updateOne(
+    { _id: userId },
+    { $push: { tickets: savedTicket._id } }
+  ).exec();
+
+  return savedTicket;
 }
