@@ -16,3 +16,13 @@ export async function createTicket(req: Request, res: Response) {
     res.status(400).send(error);
   }
 }
+
+export async function cancelTicket(req: Request, res: Response) {
+  try {
+    await ticketModel.cancelTicket(req.body.ticketId);
+    res.status(200).send({ message: "success" });
+  } catch (error) {
+    console.error(error);
+    res.status(400).send(error);
+  }
+}

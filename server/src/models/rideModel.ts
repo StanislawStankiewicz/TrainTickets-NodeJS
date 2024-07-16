@@ -10,8 +10,7 @@ export type Seat = {
 
 // Define the IRide interface
 export interface IRide extends Document {
-  _id?: ObjectId;
-  route: string;
+  route: IRoute;
   train: string;
   seats: Seat[];
   createdAt?: Date;
@@ -58,7 +57,7 @@ export async function claimFreeSeat(
   destinationStation: string
 ): Promise<string> {
   // Find the route
-  let route: IRoute | null = routesCache[ride.route];
+  let route: IRoute | null = routesCache[ride.route._id!.toString()];
   if (!route) {
     route = await Route.findOne({
       name: ride.route,
