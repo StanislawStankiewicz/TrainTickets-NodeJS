@@ -2,6 +2,7 @@ import mongoose, { Document, ObjectId } from "mongoose";
 
 // Define the IUser interface
 export interface IUser extends Document {
+  _id?: ObjectId;
   name: string;
   email: string;
   phone?: string;

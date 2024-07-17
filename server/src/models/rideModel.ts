@@ -10,8 +10,9 @@ export type Seat = {
 
 // Define the IRide interface
 export interface IRide extends Document {
+  _id?: ObjectId;
   route: IRoute;
-  train: string;
+  train: ObjectId;
   seats: Seat[];
   createdAt?: Date;
   updatedAt?: Date;
@@ -26,7 +27,7 @@ const rideSchema = new mongoose.Schema(
       required: true,
     },
     train: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
       ref: "Train",
       required: true,
     },
@@ -57,10 +58,10 @@ export async function claimFreeSeat(
   destinationStation: string
 ): Promise<string> {
   // Find the route
-  let route: IRoute | null = routesCache[ride.route._id!.toString()];
+  let route: IRoute | null = routesCache[ride.route.toString()];
   if (!route) {
     route = await Route.findOne({
-      name: ride.route,
+      _id: ride.route,
     }).exec();
     if (!route) {
       throw new Error("Route not found");

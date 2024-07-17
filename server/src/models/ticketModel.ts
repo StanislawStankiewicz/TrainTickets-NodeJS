@@ -6,6 +6,7 @@ import { getSections } from "../utils/getSections";
 
 // Define the ITicket interface
 export interface ITicket extends Document {
+  _id: ObjectId;
   userId: IUser;
   train: ObjectId;
   ride: IRide;
@@ -76,10 +77,12 @@ export async function createTicket(
   const seat = await claimFreeSeat(ride, originStation, destinationStation);
 
   const ticket: ITicket = new Ticket({
-    userId: userId,
+    userId,
     train: ride.train,
     ride: rideId,
     seat,
+    originStation,
+    destinationStation,
   });
 
   const savedTicket = await ticket.save();
@@ -107,10 +110,7 @@ export async function cancelTicket(ticketId: ObjectId): Promise<void> {
     throw new Error("Ticket not found");
   }
   ticket.isCancelled = true;
-  await User.updateOne(
-    { _id: ticket.userId },
-    { $pull: { tickets: ticketId } }
-  ).exec();
+  // Update seat status
   const sections: number[] = getSections(
     ticket.ride.route.stations,
     ticket.originStation,
@@ -124,5 +124,12 @@ export async function cancelTicket(ticketId: ObjectId): Promise<void> {
     }
     return seat;
   });
-  ticket.ride.save();
+  await Promise.all([
+    ticket.ride.save(),
+    User.updateOne(
+      { _id: ticket.userId },
+      { $pull: { tickets: ticketId } }
+    ).exec(),
+    ticket.save(),
+  ]);
 }
