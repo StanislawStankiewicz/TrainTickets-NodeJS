@@ -7,6 +7,7 @@ export interface IUser extends Document {
   _id?: ObjectId;
   name: string;
   email: string;
+  refreshToken?: string;
   phone?: string;
   tickets?: ObjectId[];
   createdAt?: Date;
@@ -25,6 +26,10 @@ const userSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
+    refreshToken: {
+      type: String,
+      required: false,
+    },
     phone: {
       type: String,
       required: false,
@@ -42,8 +47,12 @@ export const User = mongoose.model<IUser>("User", userSchema);
 
 export async function registerUser(
   user: IUser,
-  hashedPassword: string
+  userPwd: string
 ): Promise<IUser> {
+  if (userPwd.length < 8) {
+    throw new Error("Password must be at least 8 characters");
+  }
+  const hashedPassword = await bcrypt.hash(userPwd, 10);
   await user.save();
   const userId = await User.findOne({ email: user.email }).select("_id").exec();
   if (!userId) {
@@ -60,16 +69,26 @@ export async function registerUser(
 export async function loginUser(
   email: string,
   password: string
-): Promise<boolean> {
+): Promise<IUser | null> {
   const user = await User.findOne({ email }).select("_id").exec();
   const hashedPassword = (
     await Password.findOne({ userId: user?._id }).select("password").exec()
   )?.password;
   if (!user || !hashedPassword) {
-    throw new Error("User not found");
+    throw new Error("Wrong email or password");
   }
   if (await bcrypt.compare(password, hashedPassword)) {
-    return true;
+    return user;
   }
-  return false;
+  return null;
+}
+
+export async function getUserByRefreshToken(
+  refreshToken: string
+): Promise<IUser | null> {
+  return User.findOne({ refreshToken }).exec();
+}
+
+export async function deleteRefreshToken(userId: ObjectId): Promise<void> {
+  User.updateOne({ _id: userId }, { refreshToken: null }).exec();
 }

@@ -1,9 +1,14 @@
 import mongoose from "mongoose";
-import { User, IUser, registerUser } from "../../src/models/userModel";
+import {
+  User,
+  IUser,
+  registerUser,
+  loginUser,
+} from "../../src/models/userModel";
 import { IPassword, Password } from "../../src/models/passwordsModel";
 
 beforeAll(async () => {
-  const dbName = `TrainTicketsTests_registerUser`;
+  const dbName = `TrainTicketsTests_loginUser`;
   await mongoose.connect(`mongodb://localhost:27017/${dbName}`);
 });
 
@@ -30,5 +35,8 @@ describe("loginUser", () => {
     });
     expect(dbUser).not.toBeNull();
     expect(dbPassword).not.toBeNull();
+
+    const success: IUser | null = await loginUser(user.email, password);
+    expect(success).not.toBeNull();
   });
 });

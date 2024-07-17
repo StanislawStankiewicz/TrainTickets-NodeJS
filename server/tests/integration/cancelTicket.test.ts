@@ -13,6 +13,7 @@ import { User } from "../../src/models/userModel";
 beforeAll(async () => {
   const dbName = `TrainTicketsTests_cancelTicket`;
   await mongoose.connect(`mongodb://localhost:27017/${dbName}`);
+  await mongoose.connection.dropDatabase();
 });
 
 beforeEach(async () => {

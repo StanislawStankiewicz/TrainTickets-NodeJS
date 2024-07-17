@@ -7,7 +7,7 @@
     "dev": "nodemon --watch 'src/**/*.ts' --watch 'src/*.ts' --exec ts-node src/app.ts",
     "build": "tsc",
     "serve": "node dist/app.js",
-    "test": "jest"
+    "test": "jest --verbose"
   },
   "keywords": [],
   "author": "",
@@ -26,9 +26,13 @@
   },
   "dependencies": {
     "@types/bcrypt": "^5.0.2",
+    "@types/cookie-parser": "^1.4.7",
+    "@types/jsonwebtoken": "^9.0.6",
     "bcrypt": "^5.1.1",
+    "cookie-parser": "^1.4.6",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.8.0",
     "mongoose": "^8.5.1",
     "morgan": "^1.10.0"
